@@ -2,25 +2,25 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 const baseUrl = "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/";
 function Home() {
+    const [imgSrc, setImgSrc] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
 
     const handleFileInput = (event) => {
         setSelectedFile(event.target.files[0]);
     };
 
-    const handleUploadFile = () => {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('folder', 'images');
-
-        axios.post(baseUrl + "/upload", formData)
-            .then((response) => {
-                console.log(response.data);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+    const handleUploadFile = async () => {
+        try {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            formData.append("folder", "images");
+            const response = await axios.post(`${baseUrl}/upload`, formData);
+            setImgSrc(response.data.url);
+        } catch (error) {
+            console.error(error);
+        }
     };
+
     const [token, setToken] = useState(localStorage.getItem("token") || "");
 
     const [posts, setPosts] = useState([]);
@@ -160,6 +160,9 @@ function Home() {
                         <button onClick={handleUploadFile}>Upload</button>
                     </div>
                     <br></br>
+                    {imgSrc && (
+                        <img src={imgSrc} alt="img" />
+                    )}
                 </>
             )}
 

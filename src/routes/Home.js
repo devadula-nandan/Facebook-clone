@@ -3,6 +3,25 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 
 function Home() {
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    const handleFileInput = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
+
+    const handleUploadFile = () => {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('folder', 'images');
+
+        axios.post('http://localhost:9000/upload', formData)
+            .then((response) => {
+                console.log(response.data);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
     const [token, setToken] = useState(localStorage.getItem("token") || "");
 
     const [posts, setPosts] = useState([]);
@@ -12,7 +31,7 @@ function Home() {
     const getAllPosts = async () => {
         let config = {
             method: "get",
-            url: "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/posts/all",
+            url: "http://localhost:3000/posts/all",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -28,7 +47,7 @@ function Home() {
     const getUserPosts = async () => {
         let config = {
             method: "get",
-            url: "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/posts",
+            url: "http://localhost:3000/posts",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -44,7 +63,7 @@ function Home() {
     const createPost = async () => {
         let config = {
             method: "post",
-            url: "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/posts",
+            url: "http://localhost:3000/posts",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -65,7 +84,7 @@ function Home() {
     const login = async () => {
         let config = {
             method: "post",
-            url: "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/users/login",
+            url: "http://localhost:3000/users/login",
             data: {
                 email: "user1@gmail.com",
                 password: "pass1",
@@ -84,7 +103,7 @@ function Home() {
     const signup = async () => {
         let config = {
             method: "post",
-            url: "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/users",
+            url: "http://localhost:3000/users",
             data: {
                 username: "user1",
                 email: "user1@gmail.com",
@@ -136,6 +155,11 @@ function Home() {
                     <br></br>
                     <button type="button"
                         className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { createPost(); }}> createPost </button>
+                    <br></br>
+                    <div>
+                        <input type="file" onChange={handleFileInput} />
+                        <button onClick={handleUploadFile}>Upload</button>
+                    </div>
                     <br></br>
                 </>
             )}

@@ -1,7 +1,6 @@
 import axios from "axios";
-
 import { useState, useEffect } from "react";
-
+const baseUrl = "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/";
 function Home() {
     const [selectedFile, setSelectedFile] = useState(null);
 
@@ -14,7 +13,7 @@ function Home() {
         formData.append('file', selectedFile);
         formData.append('folder', 'images');
 
-        axios.post('http://localhost:9000/upload', formData)
+        axios.post(baseUrl + "/upload", formData)
             .then((response) => {
                 console.log(response.data);
             })
@@ -31,7 +30,7 @@ function Home() {
     const getAllPosts = async () => {
         let config = {
             method: "get",
-            url: "http://localhost:3000/posts/all",
+            url: baseUrl + "/posts/all",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -47,7 +46,7 @@ function Home() {
     const getUserPosts = async () => {
         let config = {
             method: "get",
-            url: "http://localhost:3000/posts",
+            url: baseUrl + "/posts",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -63,7 +62,7 @@ function Home() {
     const createPost = async () => {
         let config = {
             method: "post",
-            url: "http://localhost:3000/posts",
+            url: baseUrl + "/posts",
             headers: {
                 Authorization: "Bearer " + token,
             },
@@ -84,7 +83,7 @@ function Home() {
     const login = async () => {
         let config = {
             method: "post",
-            url: "http://localhost:3000/users/login",
+            url: baseUrl + "/users/login",
             data: {
                 email: "user1@gmail.com",
                 password: "pass1",
@@ -103,7 +102,7 @@ function Home() {
     const signup = async () => {
         let config = {
             method: "post",
-            url: "http://localhost:3000/users",
+            url: baseUrl + "/users",
             data: {
                 username: "user1",
                 email: "user1@gmail.com",

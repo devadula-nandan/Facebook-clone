@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-const baseUrl = "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/";
+const baseUrl = "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com";
 function Home() {
     const [imgSrc, setImgSrc] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);

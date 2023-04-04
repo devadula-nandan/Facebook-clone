@@ -126,7 +126,7 @@ function Home() {
 
     return (
         <div className="container mx-auto px-3">
-            <h1>Home</h1>
+            <h1>Home updated</h1>
             <p className="mb-4 break-words">token: {token}</p>
             {!token && (
                 <>

@@ -1,132 +1,75 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-const baseUrl = "http://express-env-1.eba-vk9m3qaj.ap-south-1.elasticbeanstalk.com/";
+import PostForm from "../components/postForm";
+const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
+function getElapsedTime(createdAt) {
+    const createdAtDate = new Date(createdAt);
+    const elapsedTimeMs = Date.now() - createdAtDate.getTime();
+    const seconds = Math.floor(elapsedTimeMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+        return `${days}d`;
+    }
+    if (hours > 0) {
+        return `${hours % 24}h`;
+    }
+    if (minutes > 0) {
+        return `${minutes % 60}m`;
+    }
+    return `${seconds % 60}s`;
+}
 function Home() {
-    const [imgSrc, setImgSrc] = useState("");
-    const [selectedFile, setSelectedFile] = useState(null);
-
-    const handleFileInput = (event) => {
-        setSelectedFile(event.target.files[0]);
-    };
-
-    const handleUploadFile = async () => {
-        try {
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            formData.append("folder", "images");
-            const response = await axios.post(`${baseUrl}/upload`, formData);
-            setImgSrc(response.data.url);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     const [token, setToken] = useState(localStorage.getItem("token") || "");
-
     const [posts, setPosts] = useState([]);
-
-    useEffect(() => { }, []);
+    const [isLoading, setIsLoading] = useState(false);
+    const [skeleton, setSkeleton] = useState(true);
+    useEffect(() => {
+        localStorage.getItem("token") ? getAllPosts() : window.location.href = "/login";
+    }, []);
 
     const getAllPosts = async () => {
         let config = {
             method: "get",
-            url: baseUrl + "/posts/all",
+            url: apiUrl + "/posts/all",
             headers: {
                 Authorization: "Bearer " + token,
             },
         };
         try {
             const response = await axios(config);
+            setSkeleton(false);
             setPosts(response.data);
         } catch (error) {
             console.log(error);
         }
     };
-
-    const getUserPosts = async () => {
+    const deletePost = async (id) => {
+        setIsLoading(true);
         let config = {
-            method: "get",
-            url: baseUrl + "/posts",
+            method: "delete",
+            url: apiUrl + "/posts/" + id,
             headers: {
                 Authorization: "Bearer " + token,
             },
         };
         try {
             const response = await axios(config);
-            setPosts(response.data);
+            setIsLoading(false);
+            getAllPosts();
         } catch (error) {
+            setIsLoading(false);
             console.log(error);
         }
-    };
-
-    const createPost = async () => {
-        let config = {
-            method: "post",
-            url: baseUrl + "/posts",
-            headers: {
-                Authorization: "Bearer " + token,
-            },
-            data: {
-                title: "a test post",
-                body: "a test body",
-            },
-        };
-
-        try {
-            const response = await axios(config);
-            setPosts([...posts, response.data]);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const login = async () => {
-        let config = {
-            method: "post",
-            url: baseUrl + "/users/login",
-            data: {
-                email: "user1@gmail.com",
-                password: "pass1",
-            },
-        };
-
-        try {
-            const response = await axios(config);
-            localStorage.setItem("token", response.data.token);
-            setToken(response.data.token);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const signup = async () => {
-        let config = {
-            method: "post",
-            url: baseUrl + "/users",
-            data: {
-                username: "user1",
-                email: "user1@gmail.com",
-                password: "pass1",
-            },
-        };
-
-        try {
-            const response = await axios(config);
-            localStorage.setItem("token", response.data.token);
-            setToken(response.data.token);
-        } catch (error) {
-            console.log(error.response.data);
-        }
-    };
-
-    const logout = () => {
-        setToken("");
-        localStorage.removeItem("token");
-    };
+    }
 
     return (
-        <div className="container mx-auto px-3">
-            <h1>Home</h1>
+
+        localStorage.getItem("token") && (
+            <div className="container mx-auto px-1 md:px-3">
+                {/* <h1>Home</h1>
             <p className="mb-4 break-words">token: {token}</p>
             {!token && (
                 <>
@@ -172,37 +115,113 @@ function Home() {
                         className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { logout(); }}> logout </button>
                     <br></br>
                 </>
-            )}
+            )} */}
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {posts.map((post) => {
-                    return (
-                        <a className="rounded-xl border border-gray-100 p-4 shadow-xl sm:p-6 lg:p-8" href="/posts/1" key={post.id} >
-                            <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-600 float-right" >
-                                4.3
-                            </span>
-                            <div className="pt-4 text-gray-500">
-                                <svg className="h-8 w-8 sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                                    ></path>
-                                </svg>
-                                <h3 className="mt-4 text-lg font-bold text-gray-900 sm:text-xl">
-                                    {post.title}
-                                </h3>
-                                <p className="mt-2 text-sm">
-                                    {post.body}
-                                </p>
-                            </div>
+                <div className="grid grid-cols-4 gap-4 relative">
+                    <div className="col-span-1">
+                        <div className="sticky top-16">
+                            hi
+                        </div>
+                    </div>
+                    <div className="col-span-4 lg:col-span-2">
+                        <PostForm setPosts={setPosts} />
+                        {posts.map((post) => {
+                            return (
+                                <div className="card card-compact w-full bg-base-200 shadow-xl mb-5" key={post.id}>
+                                    <div className="card-body">
+                                        <div className=" flex">
+                                            <div className="avatar">
+                                                <div className="w-12 rounded-full">
+                                                    <img src={post.User.avatar} />
+                                                </div>
+                                            </div>
+                                            {/* <div className="avatar placeholder">
+                                                <div className="bg-neutral-focus text-neutral-content rounded-full w-12">
+                                                    <span>MX</span>
+                                                </div>
+                                            </div> */}
+                                            <div className="ml-4 inline-block">
+                                                <h2 className="text-lg mb-0 font-semibold">{post.User.username}</h2>
+                                                <p>{getElapsedTime(post.createdAt)}</p>
+                                            </div>
+                                            <div className="dropdown dropdown-end ml-auto -z-0">
+                                                <label tabIndex={0} className="btn btn-ghost hover:bg-black/5">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots text-primary" viewBox="0 0 16 16">
+                                                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+                                                    </svg>
+                                                </label>
+                                                <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box">
+                                                    {JSON.parse(localStorage.getItem("user")).id === post.User.id && (
+                                                        <li> <a className={isLoading ? "loader-secondary before:!mr-0" : ""} onClick={() => {
+                                                            deletePost(post.id);
+                                                        }}>delete</a> </li>
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        </div>
 
-                        </a>
-                    );
-                })}
+                                    </div>
+                                    <figure><img src={post.postImg} alt="Post" className="w-full" /></figure>
+                                    <div className="card-body">
+                                        <h2 className="card-title">{post.title}</h2>
+                                        <p>{post.body}</p>
+                                        {/* <div className="card-actions justify-end">
+                                            <button className="btn btn-primary">Buy Now</button>
+                                        </div> */}
+                                    </div>
+                                </div>
+
+                            );
+                        })}
+                        {
+                            skeleton && (
+                                <div className="card card-compact w-full bg-base-200 shadow-xl mb-5">
+                                    <div className="card-body animate-pulse">
+                                        <div className=" flex">
+                                            <div className="avatar">
+                                                <div className="w-12 rounded-full">
+                                                    <div className="w-12 bg-base-300 h-12 rounded-full "></div>
+                                                </div>
+                                            </div>
+                                            {/* <div className="avatar placeholder">
+                                                <div className="bg-neutral-focus text-neutral-content rounded-full w-12">
+                                                    <span>MX</span>
+                                                </div>
+                                            </div> */}
+                                            <div className="ml-4 inline-block">
+                                                <div className="w-24 bg-base-300 h-5 rounded-md mb-2"></div>
+                                                <div className="w-36 bg-base-300 h-5 rounded-md "></div>
+                                            </div>
+                                            <div className="dropdown dropdown-end ml-auto -z-0">
+                                                <label tabIndex={0} className="btn btn-ghost hover:bg-black/5">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots text-primary" viewBox="0 0 16 16">
+                                                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+                                                    </svg>
+                                                </label>
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <figure><div className="bg-base-300 w-full h-64 animate-pulse"></div></figure>
+                                    <div className="card-body animate-pulse">
+                                        <div className="bg-base-300 h-5 rounded-md mb-2"></div>
+                                        <div className="bg-base-300 h-5 rounded-md mb-2"></div>
+                                        <div className="bg-base-300 h-5 rounded-md mb-2"></div>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    </div>
+                    <div className="col-span-1">
+                        <div className="sticky top-16">
+                            hi
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        )
+
     );
 }
 

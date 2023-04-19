@@ -32,7 +32,60 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-primary::before {
+  content: "";
+  border: 4px solid hsl(var(--pc));
+  border-radius: 50%;
+  border-top: 4px solid transparent;
+  width: 20px;
+  height: 20px;
+  animation: spinner 4s linear infinite;
+  margin-right: 0.6rem;
+}
+
+.loader-primary:hover::before {
+  border-top: 4px solid transparent;
+  border-color: #00000000 hsl(var(--pc)) hsl(var(--pc)) hsl(var(--pc));
+}
+
+.loader-primary:active::before {
+  border-top: 4px solid transparent;
+  border-color: #00000000 hsl(var(--pc)) hsl(var(--pc)) hsl(var(--pc));
+}
+
+.loader-secondary::before {
+  content: "";
+  border: 4px solid hsl(var(--p));
+  border-radius: 50%;
+  border-top: 4px solid transparent;
+  width: 20px;
+  height: 20px;
+  animation: spinner 4s linear infinite;
+  margin-right: 0.6rem;
+}
+
+.loader-secondary:hover::before {
+  border-top: 4px solid transparent;
+  border-color: #00000000 hsl(var(--p)) hsl(var(--p)) hsl(var(--p));
+}
+
+.loader-secondary:active::before {
+  border-top: 4px solid transparent;
+  border-color: #00000000 hsl(var(--pc)) hsl(var(--pc)) hsl(var(--pc));
+}
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
     transform: rotate(360deg);
   }
 }

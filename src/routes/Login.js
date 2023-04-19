@@ -21,13 +21,11 @@ function Login() {
         try {
             const response = await axios(config);
             setFormError({})
-            setIsLoading(false);
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("user", JSON.stringify(response.data.user));
             window.location.href = "/";
         }
         catch (error) {
-            setIsLoading(false);
             if (error.response.data === "Incorrect password") {
                 setFormError({
                     ...formError,
@@ -42,6 +40,7 @@ function Login() {
             }
             console.log(error.response.data);
         }
+        setIsLoading(false);
     }
 
     return (

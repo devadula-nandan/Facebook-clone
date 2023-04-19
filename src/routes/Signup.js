@@ -5,9 +5,11 @@ const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
 function Signup() {
     const [loginData, setLoginData] = useState({})
     const [selectedFile, setSelectedFile] = useState(null)
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
 
         try {
             const formData = new FormData();
@@ -25,6 +27,7 @@ function Signup() {
         } catch (error) {
             console.log(error);
         }
+        setIsLoading(false);
     };
 
 
@@ -101,7 +104,7 @@ function Signup() {
                             className="w-full input input-bordered input-primary" />
                     </div>
                     <div>
-                        <button className="btn btn-primary"
+                        <button className={"btn btn-primary " + (isLoading ? "loader-primary" : "")}
                             onClick={handleSubmit}
                         >Sign up</button>
                     </div>

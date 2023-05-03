@@ -1,35 +1,21 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, signUp, resetError } from "../redux/reducers/userSlice";
+import { Link, useNavigate } from 'react-router-dom';
 
-const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
 function Signup() {
-    const [loginData, setLoginData] = useState({})
-    const [selectedFile, setSelectedFile] = useState(null)
-    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({});
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
 
-        try {
-            const formData = new FormData();
-            formData.append("destination", "images/avatars");
-            formData.append("file", selectedFile);
-            const { data: { url: avatar } } = await axios.post(`${apiUrl}/upload`, formData);
+    const navigate = useNavigate();
 
-            const { data } = await axios.post(`${apiUrl}/users`, {
-                ...loginData,
-                avatar
-            });
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            window.location.href = "/";
-        } catch (error) {
-            console.log(error);
+    useEffect(() => {
+        if (user.token) {
+            navigate('/');
         }
-        setIsLoading(false);
-    };
-
+    }, [user.token, navigate]);
 
     return (
         <div className="relative flex flex-col justify-center h-screen overflow-hidden px-2">
@@ -44,17 +30,21 @@ function Signup() {
                         <div className="flex">
                             <input type="file" className="file-input file-input-bordered file-input-primary w-full"
                                 onChange={(e) => {
-                                    setSelectedFile(e.target.files[0])
+                                    setFormData({
+                                        ...formData,
+                                        avatar: e.target.files[0]
+                                    })
                                 }}
                             />
-                            {selectedFile && (
+                            {formData.avatar && (
                                 <div className="avatar pl-3">
                                     <div className="w-24 rounded">
-                                        <img src={URL.createObjectURL(selectedFile)} alt="avatar" />
+                                        <img src={typeof(formData?.avatar) === "string" ? formData?.avatar : URL.createObjectURL(formData?.avatar)} alt="" />
                                     </div>
                                 </div>
                             )}
-                            {!selectedFile && (
+
+                            {!formData.avatar && (
                                 <div className="avatar placeholder pl-3">
                                     <div className="bg-neutral-focus text-neutral-content rounded w-24">
                                         <span className="text-3xl">K</span>
@@ -69,8 +59,8 @@ function Signup() {
                         </label>
                         <input type="text"
                             onChange={(e) => {
-                                setLoginData({
-                                    ...loginData,
+                                setFormData({
+                                    ...formData,
                                     username: e.target.value
                                 })
                             }}
@@ -82,8 +72,8 @@ function Signup() {
                         </label>
                         <input type="text"
                             onChange={(e) => {
-                                setLoginData({
-                                    ...loginData,
+                                setFormData({
+                                    ...formData,
                                     email: e.target.value
                                 })
                             }}
@@ -95,8 +85,8 @@ function Signup() {
                         </label>
                         <input type="password"
                             onChange={(e) => {
-                                setLoginData({
-                                    ...loginData,
+                                setFormData({
+                                    ...formData,
                                     password: e.target.value
                                 })
                             }}
@@ -104,8 +94,11 @@ function Signup() {
                             className="w-full input input-bordered input-primary" />
                     </div>
                     <div>
-                        <button className={"btn btn-primary " + (isLoading ? "loader-primary" : "")}
-                            onClick={handleSubmit}
+                        <button className={"btn btn-primary " + (user.isLoading ? "loader-primary" : "")}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                dispatch(signUp(formData));
+                            }}
                         >Sign up</button>
                     </div>
                 </form>

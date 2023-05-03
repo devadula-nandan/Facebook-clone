@@ -1,47 +1,21 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, login, resetError } from "../redux/reducers/userSlice";
+import { Link, useNavigate } from 'react-router-dom';
 
-const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
 function Login() {
-    const [loginData, setLoginData] = useState({
-        email: "",
-        password: "",
-    })
-    const [formError, setFormError] = useState({})
-    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({});
 
-    const handleSubmit = async (e) => {
-        setIsLoading(true);
-        e.preventDefault();
-        let config = {
-            method: "post",
-            url: `${apiUrl}/users/login`,
-            data: loginData,
-        };
-        try {
-            const response = await axios(config);
-            setFormError({})
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("user", JSON.stringify(response.data.user));
-            window.location.href = "/";
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user.token) {
+            navigate('/');
         }
-        catch (error) {
-            if (error.response.data === "Incorrect password") {
-                setFormError({
-                    ...formError,
-                    password: "Incorrect password"
-                });
-            }
-            else if (error.response.data === "User not found") {
-                setFormError({
-                    ...formError,
-                    email: "User not found"
-                });
-            }
-            console.log(error.response.data);
-        }
-        setIsLoading(false);
-    }
+    }, [user.token, navigate]);
 
     return (
         <div className="relative flex flex-col justify-center h-screen overflow-hidden px-2">
@@ -54,19 +28,16 @@ function Login() {
                         </label>
                         <input type="text"
                             onFocus={(e) => {
-                                setFormError({
-                                    ...formError,
-                                    email: ""
-                                })
+                                user.error === "User not found" && dispatch(resetError());
                             }}
                             onChange={(e) => {
-                                setLoginData({
-                                    ...loginData,
+                                setFormData({
+                                    ...formData,
                                     email: e.target.value
                                 })
                             }}
-                            placeholder="Email Address" className={"w-full input input-bordered input-primary " + (formError.email ? "input-error" : "input-primary")} />
-                        <p className="text-xs text-error">{formError.email}</p>
+                            placeholder="Email Address" className={"w-full input input-bordered input-primary " + (user.error === "User not found" ? "input-error" : "input-primary")} />
+                        <p className="text-xs text-error">{user.error === "User not found" ? "User not found" : ""}</p>
                     </div>
                     <div>
                         <label className="label">
@@ -74,28 +45,28 @@ function Login() {
                         </label>
                         <input type="password"
                             onFocus={(e) => {
-                                setFormError({
-                                    ...formError,
-                                    password: ""
-                                })
+                                user.error === "Incorrect password" && dispatch(resetError());
                             }}
                             onChange={(e) => {
-                                setLoginData({
-                                    ...loginData,
+                                setFormData({
+                                    ...formData,
                                     password: e.target.value
                                 })
                             }}
                             placeholder="Enter Password"
-                            className={"w-full input input-bordered " + (formError.password ? "input-error" : "input-primary")} />
-                        <p className="text-xs text-red-400">{formError.password}</p>
+                            className={"w-full input input-bordered " + (user.error === "Incorrect password" ? "input-error" : "input-primary")} />
+                        <p className="text-xs text-error">{user.error === "Incorrect password" ? "Incorrect password" : ""}</p>
                     </div>
                     <div className=" text-end">
-                        <a href="#" className="text-xs text-gray-600 hover:underline hover:text-primary">Forget Password?</a>
+                        <Link to="/" className="text-xs text-gray-600 hover:underline hover:text-primary">Forget Password?</Link>
                     </div>
-                    <a href="/signup" className="text text-gray-600 hover:underline hover:text-primary">Don't have an account? Signup</a>
+                    <Link to="/signup" className="text text-gray-600 hover:underline hover:text-primary">Don't have an account? Signup</Link>
                     <div>
-                        <button className={"btn btn-primary " + (isLoading ? "loader-primary" : "")}
-                            onClick={handleSubmit}
+                        <button className={"btn btn-primary " + (user.isLoading ? "loader-primary" : "")}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                dispatch(login(formData));
+                            }}
                         >Login</button>
                     </div>
                 </form>

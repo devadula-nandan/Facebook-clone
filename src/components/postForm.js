@@ -1,81 +1,52 @@
-import { useState } from "react";
-import axios from "axios";
+import {useState,  useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser } from "../redux/reducers/userSlice";
+import { selectPosts, createPost } from "../redux/reducers/postsSlice";
+import { Link, useNavigate } from 'react-router-dom';
 
-const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
 function PostForm({ setPosts }) {
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [title, setTitle] = useState("");
-    const [body, setBody] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const createPost = async (e) => {
-        setIsLoading(true);
-        e.preventDefault();
+    const [formData, setFormData] = useState({})
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+    const posts = useSelector(selectPosts);
 
-        try {
-            const formData = new FormData();
-            formData.append("destination", "images/posts");
-            formData.append("file", selectedFile);
-            const { data: { url: postImg } } = await axios.post(`${apiUrl}/upload`, formData, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-
-            const { data } = await axios.post(`${apiUrl}/posts`, {
-                title,
-                body,
-                postImg
-            }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-            setIsLoading(false);
-            setPosts(prevState => [...prevState, {
-                ...data,
-                User: JSON.parse(localStorage.getItem("user")),
-            }]);
-            setTitle("");
-            setBody("");
-            setSelectedFile(null)
-        } catch (error) {
-            setIsLoading(false);
-            alert(error.message);
-            console.log(error);
-        }
-    };
-
-
-
+    const navigate = useNavigate();
+    
     return (
         <div className="w-full p-6 m-auto bg-base-200 rounded-md shadow-md mt-6 mb-6">
             <form className="space-y-4">
                 <div>
                     <input type="text"
                         onChange={(e) => {
-                            setTitle(e.target.value)
+                            setFormData({ ...formData, title: e.target.value })
                         }}
-                        value={title}
+                        value={formData.title || ""}
                         placeholder="Post title" className="w-full input input-bordered input-primary" />
                 </div>
                 <div>
                     <textarea className="textarea textarea-primary w-full text-base" placeholder="Post Text"
-                        value={body}
+                        value={formData.body || ""}
                         onChange={(e) => {
-                            setBody(e.target.value)
+                            setFormData({ ...formData, body: e.target.value })
                         }}
                     ></textarea>
                 </div>
-                {selectedFile && (
+                {formData.postImg && (
                     <div>
-                        <img src={URL.createObjectURL(selectedFile)} alt="img" className="w-full" />
+                        <img src={URL.createObjectURL(formData.postImg)} alt="img" className="w-full" />
                     </div>
                 )}
                 <div className="flex">
                     <input type="file" className="file-input file-input-bordered file-input-primary w-full"
                         onChange={(e) => {
-                            setSelectedFile(e.target.files[0])
+                            setFormData({ ...formData, postImg: e.target.files[0] })
                         }}
                     />
-                    <button className={"btn btn-primary ml-3 " + (isLoading ? "loader-primary" : "")}
+                    <button className={"btn btn-primary ml-3 " + (posts.isLoading ? "loader-primary" : "")}
                         onClick={(e) => {
-                            createPost(e);
+                            e.preventDefault();
+                            dispatch(createPost({ ...formData }))
+                            setFormData({})
                         }}
                     >Post</button>
                 </div>

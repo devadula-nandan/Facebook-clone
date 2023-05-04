@@ -5,7 +5,6 @@ const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:9000";
 export const signUp = createAsyncThunk(
     'user/signUp',
     async (user, thunkAPI) => {
-        console.log(user);
         try {
             if(user.avatar){
             // const { data: { url: avatar } } = await axios.post(`${apiUrl}/upload`, formData);
@@ -43,7 +42,12 @@ const userSlice = createSlice({
     },
     reducers: {
         logout: (state) => {
-            state.user = {};
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            state.data = {};
+            state.token = undefined;
+            state.isLoading = false;
+            state.error = null;
         },
         resetError: (state) => {
             state.error = null
@@ -58,7 +62,7 @@ const userSlice = createSlice({
                 state.isLoading = false;
                 localStorage.setItem("user", JSON.stringify(action.payload.user));
                 localStorage.setItem("token", action.payload.token);
-                state.user = action.payload.user;
+                state.data = action.payload.user;
                 state.token = action.payload.token;
             })
             .addCase(signUp.rejected, (state, action) => {
@@ -72,7 +76,7 @@ const userSlice = createSlice({
                 state.isLoading = false;
                 localStorage.setItem("user", JSON.stringify(action.payload.user));
                 localStorage.setItem("token", action.payload.token);
-                state.user = action.payload.user;
+                state.data = action.payload.user;
                 state.token = action.payload.token;
             })
             .addCase(login.rejected, (state, action) => {

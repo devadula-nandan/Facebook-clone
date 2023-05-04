@@ -1,8 +1,11 @@
-import axios from "axios";
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser } from "../redux/reducers/userSlice";
+import { selectPosts, getAllPosts,deletePost } from "../redux/reducers/postsSlice";
+import { Link, useNavigate } from 'react-router-dom';
 import PostForm from "../components/postForm";
-const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
-function getElapsedTime(createdAt) {
+
+function getETA(createdAt) {
     const createdAtDate = new Date(createdAt);
     const elapsedTimeMs = Date.now() - createdAtDate.getTime();
     const seconds = Math.floor(elapsedTimeMs / 1000);
@@ -22,101 +25,26 @@ function getElapsedTime(createdAt) {
     return `${seconds % 60}s`;
 }
 function Home() {
-    const [token, setToken] = useState(localStorage.getItem("token") || "");
-    const [posts, setPosts] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [skeleton, setSkeleton] = useState(true);
-    useEffect(() => {
-        localStorage.getItem("token") ? getAllPosts() : window.location.href = "/login";
-    }, []);
 
-    const getAllPosts = async () => {
-        let config = {
-            method: "get",
-            url: apiUrl + "/posts/all",
-            headers: {
-                Authorization: "Bearer " + token,
-            },
-        };
-        try {
-            const response = await axios(config);
-            setSkeleton(false);
-            setPosts(response.data);
-        } catch (error) {
-            console.log(error);
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+    const posts = useSelector(selectPosts);
+
+    const navigate = useNavigate();
+    console.log(posts);
+    useEffect(() => {
+       
+        if (user.token) {
+            dispatch(getAllPosts());
+        } else {
+            navigate("/login");
         }
-    };
-    const deletePost = async (id) => {
-        setIsLoading(true);
-        let config = {
-            method: "delete",
-            url: apiUrl + "/posts/" + id,
-            headers: {
-                Authorization: "Bearer " + token,
-            },
-        };
-        try {
-            const response = await axios(config);
-            setIsLoading(false);
-            getAllPosts();
-        } catch (error) {
-            setIsLoading(false);
-            console.log(error);
-        }
-    }
+    }, [user.token, dispatch, navigate]);
 
     return (
 
         localStorage.getItem("token") && (
             <div className="container mx-auto px-1 md:px-3">
-                {/* <h1>Home</h1>
-            <p className="mb-4 break-words">token: {token}</p>
-            {!token && (
-                <>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { signup(); }} > signup </button>
-                    <br></br>
-                </>
-            )}
-
-            {!token && (
-                <>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { login(); }}> login </button>
-                    <br></br>
-                </>
-            )}
-
-            {token && (
-                <>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { getUserPosts(); }}> getUserPosts </button>
-                    <br></br>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { getAllPosts(); }}> getAllPosts </button>
-                    <br></br>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { createPost(); }}> createPost </button>
-                    <br></br>
-                    <div>
-                        <input type="file" onChange={handleFileInput} />
-                        <button onClick={handleUploadFile}>Upload</button>
-                    </div>
-                    <br></br>
-                    {imgSrc && (
-                        <img src={imgSrc} alt="img" />
-                    )}
-                </>
-            )}
-
-            {token && (
-                <>
-                    <button type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-cyan-600 transition-all px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:ml-3 sm:w-auto mb-3" onClick={() => { logout(); }}> logout </button>
-                    <br></br>
-                </>
-            )} */}
-
                 <div className="grid grid-cols-4 gap-4 relative">
                     <div className="col-span-1">
                         <div className="sticky top-16">
@@ -124,15 +52,15 @@ function Home() {
                         </div>
                     </div>
                     <div className="col-span-4 lg:col-span-2">
-                        <PostForm setPosts={setPosts} />
-                        {posts.map((post) => {
+                        <PostForm />
+                        {posts.data.map((post) => {
                             return (
                                 <div className="card card-compact w-full bg-base-200 shadow-xl mb-5" key={post.id}>
                                     <div className="card-body">
                                         <div className=" flex">
                                             <div className="avatar">
                                                 <div className="w-12 rounded-full">
-                                                    <img src={post.User.avatar} />
+                                                    <img src={post.User.avatar} alt="" />
                                                 </div>
                                             </div>
                                             {/* <div className="avatar placeholder">
@@ -142,7 +70,7 @@ function Home() {
                                             </div> */}
                                             <div className="ml-4 inline-block">
                                                 <h2 className="text-lg mb-0 font-semibold">{post.User.username}</h2>
-                                                <p>{getElapsedTime(post.createdAt)}</p>
+                                                <p>{getETA(post.createdAt)}</p>
                                             </div>
                                             <div className="dropdown dropdown-end ml-auto -z-0">
                                                 <label tabIndex={0} className="btn btn-ghost hover:bg-black/5">
@@ -152,8 +80,8 @@ function Home() {
                                                 </label>
                                                 <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box">
                                                     {JSON.parse(localStorage.getItem("user")).id === post.User.id && (
-                                                        <li> <a className={isLoading ? "loader-secondary before:!mr-0" : ""} onClick={() => {
-                                                            deletePost(post.id);
+                                                        <li> <a className={posts.isLoading ? "loader-secondary before:!mr-0" : ""} onClick={() => {
+                                                            dispatch(deletePost(post.id));
                                                         }}>delete</a> </li>
                                                     )}
                                                 </ul>
@@ -174,7 +102,7 @@ function Home() {
                             );
                         })}
                         {
-                            skeleton && (
+                            posts.skeleton && (
                                 <div className="card card-compact w-full bg-base-200 shadow-xl mb-5">
                                     <div className="card-body animate-pulse">
                                         <div className=" flex">

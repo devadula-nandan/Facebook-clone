@@ -1,8 +1,17 @@
-import { useEffect, useState } from "react";
+import {useState,  useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, logout } from "../redux/reducers/userSlice";
+import { Link, useNavigate } from 'react-router-dom';
+
 const themes = ["light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave", "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "pastel", "wireframe", "black", "dracula", "cmyk", "business"]
-const apiUrl =  process.env.REACT_APP_API_URL || "http://localhost:9000";
+
 export default function Navbar() {
+    const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+
+    const navigate = useNavigate();
     const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+    
     useEffect(() => {
         document.querySelector('html').setAttribute('data-theme', theme);
     }, [theme]);
@@ -10,7 +19,7 @@ export default function Navbar() {
         <>
             <div className="navbar bg-primary sticky top-0 z-50">
                 <div className="navbar-start">
-                    {localStorage.getItem('token') &&
+                    {user.token &&
                         <div className="dropdown">
                             <label tabIndex={0} className="btn btn-ghost lg:hidden">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
@@ -33,7 +42,7 @@ export default function Navbar() {
                     }
                     <a className="btn btn-ghost normal-case text-xl" href="/">Facebook</a>
                 </div>
-                {localStorage.getItem('token') &&
+                {user.token &&
                     <div className="navbar-center hidden lg:flex">
                         <ul className="menu menu-horizontal px-1">
                             <li>
@@ -100,20 +109,20 @@ export default function Navbar() {
                         </ul>
                     </div>
                 </div>
-                {localStorage.getItem('token') &&
+                {user.token &&
                     <div className="dropdown dropdown-end">
                         {
-                            JSON.parse(localStorage.getItem('user')).avatar
+                            user.data.avatar
                                 ?
                                 <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                                     <div className="w-10 rounded-full">
-                                        <img src={JSON.parse(localStorage.getItem('user')).avatar} alt="" />
+                                        <img src={user.data.avatar} alt="" />
                                     </div>
                                 </label>
                                 :
                                 <div tabIndex={0} className="avatar placeholder">
                                     <div className="bg-neutral-focus text-neutral-content rounded-full w-12">
-                                        <span>{JSON.parse(localStorage.getItem('user')).username[0]}</span>
+                                        <span>{user.data.username[0]}</span>
                                     </div>
                                 </div>
                         }
@@ -126,9 +135,8 @@ export default function Navbar() {
                             </li>
                             <li><a>Settings</a></li>
                             <li><a onClick={() => {
-                                localStorage.removeItem('token');
-                                localStorage.removeItem('user');
-                                window.location.reload();
+                                dispatch(logout());
+                                navigate('/login');
                             }}>Logout</a></li>
                         </ul>
                     </div>}

@@ -39,7 +39,7 @@ function Signup() {
                             {formData.avatar && (
                                 <div className="avatar pl-3">
                                     <div className="w-24 rounded">
-                                        <img src={typeof(formData?.avatar) === "string" ? formData?.avatar : URL.createObjectURL(formData?.avatar)} alt="" />
+                                        <img src={URL.createObjectURL(formData?.avatar)} alt="" />
                                     </div>
                                 </div>
                             )}
@@ -97,7 +97,7 @@ function Signup() {
                         <button className={"btn btn-primary " + (user.isLoading ? "loader-primary" : "")}
                             onClick={(e) => {
                                 e.preventDefault();
-                                dispatch(signUp(formData));
+                                dispatch(signUp({ ...formData }));
                             }}
                         >Sign up</button>
                     </div>

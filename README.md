@@ -1,1 +1,1 @@
-<!-- '{"name":"Facebook clone","version":"12","tech":["React.js","Redux.js","HTML","CSS","Tailwind","Javascript"],"tags": ["frontend", "backend", "api","fullstack"],"tags":["frontend","fullstack","api","backend"],"snapshots":[""]}' -->
+<!-- '{"name":"Facebook clone","version":"12","tech":["React.js","Redux.js","HTML","CSS","Tailwind","Javascript"],"tags": ["frontend", "backend", "api","fullstack"],"tags":["frontend","fullstack","api","backend"],"snapshots":[]}' -->
